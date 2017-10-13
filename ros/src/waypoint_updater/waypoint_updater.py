@@ -45,7 +45,9 @@ class WaypointUpdater(object):
         rospy.spin()
 
     def pose_cb(self, msg):
-        # TODO: Implement
+        # TODO: Get first waypoint ahead of the car
+
+
 	self.final_waypoints_pub.publish(self.waypoints)
         #pass
 
@@ -77,6 +79,27 @@ class WaypointUpdater(object):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
+
+	def get_distance(a, b):
+		return math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+
+	def get_closest_waypoint(pose, waypoints):
+		best_distance = float('inf')
+		best_index = 0
+		pose_position = pose.position
+
+		for i, waypoint in enumerate(waypoints):
+
+		    waypoint_position = waypoint.pose.pose.position
+		    distance = get_distance(pose_position, waypoint_position)
+
+		    if gap < best_gap:
+		        best_index, best_gap = i, gap
+
+		is_behind = is_waypoint_behind(pose, waypoints[best_index])
+		if is_behind:
+		    best_index += 1
+		return best_index
 
 
 if __name__ == '__main__':
