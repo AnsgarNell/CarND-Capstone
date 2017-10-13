@@ -36,12 +36,11 @@ class WaypointUpdater(object):
 	#rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb
         #rospy.Subscriber('/obstacle_waypoint', ????, self.obstacle_cb)
 
-	self.waypoints = None
-
-
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
 
         # TODO: Add other member variables you need below
+
+	self.waypoints = None
 
         rospy.spin()
 
