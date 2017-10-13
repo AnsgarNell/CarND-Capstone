@@ -33,30 +33,81 @@ class WaypointUpdater(object):
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
 
-	#rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb
+        #rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb
         #rospy.Subscriber('/obstacle_waypoint', ????, self.obstacle_cb)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
-
+        
         # TODO: Add other member variables you need below
-
-	self.waypoints = None
-
+    
+        self.pose = None
+        self.waypoints = None
         rospy.spin()
 
+    def positions_distance(a, b):
+        return math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+
+    def get_closest_waypoint(pose, waypoints):
+        best_distance = float('inf')
+        best_index = 0
+        pose_position = pose.position
+
+        for i, waypoint in enumerate(waypoints):
+
+            waypoint_position = waypoint.pose.pose.position
+            distance = positions_distance(pose_position, waypoint_position)
+
+            if distance < best_distance:
+                best_index, best_distance = i, distance
+
+        return best_index
+
+    def is_waypoint_behind(pose, waypoint):
+        _, _, yaw = tf.transformations.euler_from_quaternion([pose.orientation.x,
+                                                         pose.orientation.y,
+                                                         pose.orientation.z,
+                                                         pose.orientation.w])
+        x = pose.position.x
+        y = pose.position.y
+
+        shift_x = waypoint.pose.pose.position.x - x
+        shift_y = waypoint.pose.pose.position.y - y
+
+        x = shift_x * cos(0 - yaw) - shift_y * sin(0 - yaw)
+
+        if x > 0:
+            return False
+        return True
+
+    def get_ahead_waypoint(self, pose, waypoints):
+
+        index = get_closest_waypoint(pose, waypoints)
+        is_behind = is_waypoint_behind(pose, waypoints[index])
+        if is_behind:
+            index += 1
+
     def pose_cb(self, msg):
-        # TODO: Get first waypoint ahead of the car
+        # TODO: Implement
+        rospy.loginfo(rospy.get_caller_id() + "pose_cb received")
+        self.pose = msg.pose
+        index = get_ahead_waypoint(self.pose, self.waypoints)
 
+        final_waypoints = []
 
-	self.final_waypoints_pub.publish(self.waypoints)
+        for i in range(LOOKAHEAD_WPS):
+            if (index == len(self.waypoints)): index = 0
+            final_waypoints[i] = self.waypoints[index]
+            index += 1
+
+        self.final_waypoints_pub.publish(final_waypoints)
         #pass
 
     def waypoints_cb(self, waypoints):
         # TODO: Implement
-	rospy.loginfo(rospy.get_caller_id() + "base_waypoints received")
-	self.waypoints = waypoints
+        rospy.loginfo(rospy.get_caller_id() + "base_waypoints received")
+        self.waypoints = waypoints
         #pass
-	
+    
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
@@ -79,28 +130,6 @@ class WaypointUpdater(object):
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
             wp1 = i
         return dist
-
-	def get_distance(a, b):
-		return math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
-
-	def get_closest_waypoint(pose, waypoints):
-		best_distance = float('inf')
-		best_index = 0
-		pose_position = pose.position
-
-		for i, waypoint in enumerate(waypoints):
-
-		    waypoint_position = waypoint.pose.pose.position
-		    distance = get_distance(pose_position, waypoint_position)
-
-		    if gap < best_gap:
-		        best_index, best_gap = i, gap
-
-		is_behind = is_waypoint_behind(pose, waypoints[best_index])
-		if is_behind:
-		    best_index += 1
-		return best_index
-
 
 if __name__ == '__main__':
     try:
