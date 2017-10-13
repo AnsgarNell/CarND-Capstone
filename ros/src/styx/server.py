@@ -4,6 +4,8 @@ import socketio
 import eventlet
 import eventlet.wsgi
 import time
+import sys
+sys.excepthook = lambda *args: None
 from flask import Flask, render_template
 
 from bridge import Bridge
