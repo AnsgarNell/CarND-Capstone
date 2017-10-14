@@ -25,39 +25,39 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
 
 def positions_distance(a, b):
-        return math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
+    return math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
 
 def get_closest_waypoint(pose, waypoints):
-        best_distance = float('inf')
-        best_index = 0
-        pose_position = pose.position
+    best_distance = float('inf')
+    best_index = 0
+    pose_position = pose.position
 
-        for i, waypoint in enumerate(waypoints):
+    for i, waypoint in enumerate(waypoints):
 
-            waypoint_position = waypoint.pose.pose.position
-            distance = positions_distance(pose_position, waypoint_position)
+        waypoint_position = waypoint.pose.pose.position
+        distance = positions_distance(pose_position, waypoint_position)
 
-            if distance < best_distance:
-                best_index, best_distance = i, distance
+        if distance < best_distance:
+            best_index, best_distance = i, distance
 
-        return best_index
+    return best_index
 
 def is_waypoint_behind(pose, waypoint):
-        _, _, yaw = tf.transformations.euler_from_quaternion([pose.orientation.x,
-                                                         pose.orientation.y,
-                                                         pose.orientation.z,
-                                                         pose.orientation.w])
-        x = pose.position.x
-        y = pose.position.y
+    _, _, yaw = tf.transformations.euler_from_quaternion([pose.orientation.x,
+                                                        pose.orientation.y,
+                                                        pose.orientation.z,
+                                                        pose.orientation.w])
+    x = pose.position.x
+    y = pose.position.y
 
-        shift_x = waypoint.pose.pose.position.x - x
-        shift_y = waypoint.pose.pose.position.y - y
+    shift_x = waypoint.pose.pose.position.x - x
+    shift_y = waypoint.pose.pose.position.y - y
 
-        x = shift_x * math.cos(0 - yaw) - shift_y * math.sin(0 - yaw)
+    x = shift_x * math.cos(0 - yaw) - shift_y * math.sin(0 - yaw)
 
-        if x > 0:
-            return False
-        return True
+    if x > 0:
+        return False
+    return True
 
 def get_ahead_waypoint(pose, waypoints):
 
@@ -65,6 +65,8 @@ def get_ahead_waypoint(pose, waypoints):
     is_behind = is_waypoint_behind(pose, waypoints[index])
     if is_behind:
         index += 1
+    return index
+
 
 
 class WaypointUpdater(object):
@@ -92,21 +94,25 @@ class WaypointUpdater(object):
         # TODO: Implement
         rospy.loginfo(rospy.get_caller_id() + "pose_cb received")
         self.pose = msg.pose
+        """
         index = get_ahead_waypoint(self.pose, self.waypoints)
 
         final_waypoints = []
 
+
         for i in range(LOOKAHEAD_WPS):
-            if (index == len(self.waypoints)): index = 0
+            if (index == len(self.waypoints)): 
+                index = 0
             final_waypoints[i] = self.waypoints[index]
             index += 1
 
         self.final_waypoints_pub.publish(final_waypoints)
+        """
         #pass
 
     def waypoints_cb(self, msg):
         # TODO: Implement
-        rospy.loginfo(rospy.get_caller_id() + "base_waypoints received")
+        rospy.loginfo(rospy.get_caller_id() + "base_waypoints received %s", msg.waypoints)
         self.waypoints = msg.waypoints
         #pass
     
