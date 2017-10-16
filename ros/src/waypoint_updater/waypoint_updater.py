@@ -3,6 +3,7 @@
 import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
+from std_msgs.msg import Int32
 
 import waypoint_updater_helper
 
@@ -34,7 +35,7 @@ class WaypointUpdater(object):
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
 
-        #rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb
+        rospy.Subscriber('/traffic_waypoint', Int32, self.traffic_cb)
         #rospy.Subscriber('/obstacle_waypoint', ????, self.obstacle_cb)
 
         self.final_waypoints_pub = rospy.Publisher('final_waypoints', Lane, queue_size=1)
@@ -61,6 +62,7 @@ class WaypointUpdater(object):
             if (index == len(self.base_waypoints)): 
                 index = 0        
             final_waypoints.append(self.base_waypoints[index])
+            final_waypoints[-1].twist.twist.linear.x = 10.0
             index += 1
 
         lane = Lane()
